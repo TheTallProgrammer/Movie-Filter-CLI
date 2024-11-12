@@ -17,17 +17,42 @@ parser.add_argument("--stars", type=str, help="Top-billed actors (up to 4)")
 parser.add_argument("--votes", type=str, help="IMDb votes received")
 parser.add_argument("--gross", type=str, help="Gross revenue in USD")
 
+# TODO will need to have args for output and summary log
+
 args = parser.parse_args() # being used as a reference to the open file, also holds the args the user passed in for future reference
 
+# stores used arg key-value pairs in dictionary for easier parsing
+used_args = {}
+for arg_name, arg_value in vars(args).items():
+    if arg_value is not None: 
+        used_args[arg_name] = arg_value
+
 try:
+    desired_films = []
     
     # csv dictReader auto interprets the first row as the header columns (keys) for the csv. 
     # The rows beneath are data rows (the values) for the header keys based on its position
+    reader = csv.DictReader(args.input) # use reference to open file to parse csv efficiently by changing the args namespace object to a dictionary
     
-    reader = csv.DictReader(args.input) # use reference to open file to parse csv efficiently
     for row in reader:
         # each row is a key-value pair, access specific values by associated keys row[key]
-        print(row["series_title"])
+        
+        match = True
+        # this loop allows me to access all arg inputs, whether they're utilized or not
+        for arg_name, arg_value in used_args.items():
+            
+            if arg_name == "input": # required arg
+                continue
+            
+            if row.get(arg_name) != arg_value:
+                match = False
+                break
+
+        if match:
+            desired_films.append(row)
 
 finally:
     args.input.close() # close the open file rerference 
+    
+for movie in desired_films:
+    print(movie)
