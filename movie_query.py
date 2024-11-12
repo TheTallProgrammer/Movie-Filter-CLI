@@ -44,9 +44,13 @@ try:
             if arg_name == "input": # required arg
                 continue
             
+            # this condition fails because it requires everything to have a value that the user wants or it's false
+            # need to make a condition that checks the row has all required args, the rest don't matter what value it is, not the other condition, which requires all args in the current row to have only the users args, which is never the case unless the user inputs all optional args in the command line 
             if row.get(arg_name) != arg_value:
                 match = False
                 break
+            
+            # I need a way to essentially compare values of the args in the row to the values of args that the user wants the movies to have, if the args don't match that's fine, it just needs to have at least the args that do. So maybe the inverse is the best way? Don't necessarily compare for matching values, but maybe check to see what values the row doesn't match with, subtract that from all args, and then if the remaining args match the users passed in args, add that row of data, sort of like 1-P(x) instead of p(specific condition)
 
         if match:
             desired_films.append(row)
