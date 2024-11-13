@@ -17,13 +17,13 @@ def parse_arguments():
     )
     parser.add_argument("--rating-above", type=float, help="Filter for IMDb rating above a specified value")
     parser.add_argument("--rating-below", type=float, help="Filter for IMDb rating below a specified value")
-    
     parser.add_argument(
         "--director", 
         nargs='+', # for director first and last name as arguments
         type=str, 
         help="Filter by director’s name")
     parser.add_argument("--actor", type=str, help="Filter by actor's name") # actors are the stars in the csv
+    
     parser.add_argument("--runtime-more-than", type=int, help="Filter for movies with runtime more than a specified duration (in minutes)")
     parser.add_argument("--runtime-less-than", type=int, help="Filter for movies with runtime less than a specified duration (in minutes)")
     parser.add_argument("--gross-min", type=int, help="Filter for movies with gross revenue above a specified value in USD")
@@ -94,6 +94,18 @@ def filter_movies(movies, used_args):
             if arg_name == "director":
                 full_name = arg_value[0].lower() + " " + arg_value[1].lower() # grab first/last name from argument
                 if row['director'].lower() != full_name:
+                    match = False
+                    break
+                continue
+            
+            if arg_name == "runtime_less_than":
+                if int(row['runtime'].replace("min", "")) >= int(arg_value):
+                    match = False
+                    break
+                continue
+            
+            if arg_name == "runtime_more_than":
+                if int(row['runtime'].replace("min","")) <= int(arg_value):
                     match = False
                     break
                 continue
