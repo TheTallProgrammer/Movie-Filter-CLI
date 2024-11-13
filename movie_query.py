@@ -92,8 +92,12 @@ def filter_movies(movies, used_args):
                 continue
             
             if arg_name == "director":
-                full_name = [n.lower() for n in arg_value] # grab first/last name from argument
-                print(f"director full name is {full_name}")
+                full_name = arg_value[0].lower() + " " + arg_value[1].lower() # grab first/last name from argument
+                if row['director'].lower() != full_name:
+                    match = False
+                    break
+                continue
+
              
             
             if arg_name == "genre":  # user specified genre(s)
