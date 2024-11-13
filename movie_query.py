@@ -43,13 +43,14 @@ def parse_arguments():
     return parser.parse_args() # being used as a reference to the open file, also holds the args the user passed in for future reference
     
 def collect_used_args(args):
-    # stores used arg key-value pairs in dictionary for easier parsing
+    # Store only relevant filtering args, excluding output-related arguments
     used_args = {}
     for arg_name, arg_value in vars(args).items():
-        if arg_value is not None: 
+        if arg_value is not None and arg_name not in {"output_file", "output_format"}:
             used_args[arg_name] = arg_value
 
     return used_args
+
 
 def read_csv(input_file):
     # csv dictReader auto interprets the first row as the header columns (keys) for the csv. 
@@ -170,7 +171,7 @@ def filter_movies(movies, used_args):
                 continue
                     
 
-            if row.get(arg_name) != arg_value and (arg_name != "output_file" or arg_name != "output_format"): # if any of the args the user passed in just doesn't match values, then it voids the entire row ie genre = action, the row doesn't have action in genres, that movie is skipped 
+            if row.get(arg_name) != arg_value: # if any of the args the user passed in just doesn't match values, then it voids the entire row ie genre = action, the row doesn't have action in genres, that movie is skipped 
                 match = False
                 break
         
@@ -205,6 +206,12 @@ def save_filtered_data(desired_films, headers, file_name, file_type):
     if not file_type:
         file_type = "csv"
     file_path = f"{file_name}.{file_type}"
+    
+    data = [
+        {header: movie.get(header.lower(), '') for header in headers}
+        for movie in desired_films
+    ]
+    print(data)
 
     print(f"Filtered movies saved to {file_path}")
     
@@ -218,8 +225,8 @@ def main():
     save_filtered_data(
         desired_films,
         headers,
-        file_name=used_args.get('output_file'),
-        file_type=used_args.get('output_format')
+        file_name=args.output_file,
+        file_type=args.output_format
     )
     
 if __name__ == "__main__":
