@@ -109,8 +109,18 @@ def filter_movies(movies, used_args):
                     match = False
                     break
                 continue
-
-             
+            
+            if arg_name == "gross_min":
+                if not row['gross'] or int(row['gross'].replace(",","")) < int(arg_value):
+                    match = False
+                    break
+                continue
+            
+            if arg_name == "gross_max":
+                if not row['gross'] or int(row['gross'].replace(",","")) > int(arg_value):
+                    match = False
+                    break
+                continue
             
             if arg_name == "genre":  # user specified genre(s)
                 used_genres_as_arg = True
