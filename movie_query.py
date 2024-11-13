@@ -5,29 +5,25 @@ import csv
 
 def parse_arguments():
     parser = argparse.ArgumentParser() # parser for the file
-    parser.add_argument("input", type=argparse.FileType("r"), help="file to be parsed") # required param "input" which will take the filename, holds reference to open file, ready to parse
+    parser.add_argument("--input", type=argparse.FileType("r"), help="file to be parsed") # required param "input" which will take the filename, holds reference to open file, ready to parse
 
-    # optional inputs
-    parser.add_argument("--title", type=str, help="Movie title") # access w/ args.title
-    parser.add_argument("--released-year", type=str, help="Release year")
-    parser.add_argument("--runtime", type=str, help="Duration in minutes")
+    parser.add_argument("--year-after", type=int, help="Filter for movies released after a given year")
+    parser.add_argument("--year-before", type=int, help="Filter for movies released before a given year")
     parser.add_argument(
-            "--genre",
-            nargs='+',  # allows multiple genres
-            type=str,
-            help="Main genre(s), e.g., --genre Action Drama"
-        )
-    parser.add_argument("--imdb_rating", type=str, help="IMDb rating on a scale of 1-10")
-    parser.add_argument("--overview", type=str, help="Movie summary")
-    parser.add_argument("--meta_score", type=str, help="Metascore rating")
-    parser.add_argument("--director", type=str, help="Director’s name")
-    parser.add_argument(
-        "--stars", 
-        nargs='+',
-        type=str, 
-        help="Top-billed actors (up to 4)")
-    parser.add_argument("--votes", type=str, help="IMDb votes received")
-    parser.add_argument("--gross", type=str, help="Gross revenue in USD")
+        "--genre",
+        nargs='+',  # allows multiple genres
+        type=str,
+        help="Filter by genre(s), e.g., --genre Action Drama"
+    )
+    parser.add_argument("--rating-above", type=float, help="Filter for IMDb rating above a specified value")
+    parser.add_argument("--rating-below", type=float, help="Filter for IMDb rating below a specified value")
+    parser.add_argument("--director", type=str, help="Filter by director’s name")
+    parser.add_argument("--actor", type=str, help="Filter by actor's name")
+    parser.add_argument("--runtime-more-than", type=int, help="Filter for movies with runtime more than a specified duration (in minutes)")
+    parser.add_argument("--runtime-less-than", type=int, help="Filter for movies with runtime less than a specified duration (in minutes)")
+    parser.add_argument("--gross-min", type=int, help="Filter for movies with gross revenue above a specified value in USD")
+    parser.add_argument("--gross-max", type=int, help="Filter for movies with gross revenue below a specified value in USD")
+
 
     return parser.parse_args() # being used as a reference to the open file, also holds the args the user passed in for future reference
     
@@ -59,9 +55,23 @@ def filter_movies(movies, used_args):
         for arg_name, arg_value in used_args.items():
             
             if arg_name == "input": # required arg
-                continue
+                continue # add continue at end of arg eval in order to go to next arg in the array, no need in checking other conditions if we found the arg we're currently looking at in array
             
-            print(f"user arg {arg_name} has value {arg_value}, comparing to rows {row[arg_name]}")
+            # arg_name is the specified arg command user inputs ie "genre" and the arg_value is the value that follows "action"
+            # the row[arg_name] pulls the value for that key from the row, so if checking genre, row[genre] will pull whatever genre(s) that row has for that movie
+            
+            # imdb rating
+            if arg_name == "rating_above": # user wants the rating of movie to be above arg_value
+                if float(row['imdb_rating']) <= float(arg_value): # checking condition that would make the movie invalid
+                    match = False
+                    break
+                continue 
+                
+            if arg_name == "rating_below": # user wants rating to be less than arg_value
+                if float(row["imdb_rating"]) >= float(arg_value): # checking condition that would make the movie invalid
+                    match = False
+                    break
+                continue
             
             if arg_name == "genre":  # user specified genre(s)
                 used_genres_as_arg = True
@@ -72,13 +82,10 @@ def filter_movies(movies, used_args):
                 for genre in genres:
                     if genre in search_genres:
                         matching_genres = True
-                        break  # No need to check further if a match is found
-                else:
-                    matching_genres = False
+                        break  # no need to check further if a match is found
                 continue
 
-            
-            if row.get(arg_name) != arg_value:
+            if row.get(arg_name) != arg_value: # if any of the args the user passed in just doesn't match values, then it voids the entire row ie genre = action, the row doesn't have action in genres, that movie is skipped 
                 match = False
                 break
         
