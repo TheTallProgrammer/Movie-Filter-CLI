@@ -17,8 +17,13 @@ def parse_arguments():
     )
     parser.add_argument("--rating-above", type=float, help="Filter for IMDb rating above a specified value")
     parser.add_argument("--rating-below", type=float, help="Filter for IMDb rating below a specified value")
-    parser.add_argument("--director", type=str, help="Filter by director’s name")
-    parser.add_argument("--actor", type=str, help="Filter by actor's name")
+    
+    parser.add_argument(
+        "--director", 
+        nargs='+', # for director first and last name as arguments
+        type=str, 
+        help="Filter by director’s name")
+    parser.add_argument("--actor", type=str, help="Filter by actor's name") # actors are the stars in the csv
     parser.add_argument("--runtime-more-than", type=int, help="Filter for movies with runtime more than a specified duration (in minutes)")
     parser.add_argument("--runtime-less-than", type=int, help="Filter for movies with runtime less than a specified duration (in minutes)")
     parser.add_argument("--gross-min", type=int, help="Filter for movies with gross revenue above a specified value in USD")
@@ -51,6 +56,7 @@ def filter_movies(movies, used_args):
         match = True
         matching_genres = False
         used_genres_as_arg = False
+        
         # this loop allows me to access all arg inputs, whether they're utilized or not
         for arg_name, arg_value in used_args.items():
             
@@ -84,6 +90,10 @@ def filter_movies(movies, used_args):
                     match = False
                     break
                 continue
+            
+            if arg_name == "director":
+                full_name = [n.lower() for n in arg_value] # grab first/last name from argument
+                print(f"director full name is {full_name}")
              
             
             if arg_name == "genre":  # user specified genre(s)
@@ -105,6 +115,7 @@ def filter_movies(movies, used_args):
         # after checking through all args, specifically genres, if not one genre matches (at least the desired genre) then don't add it as it's not a match
         if used_genres_as_arg and not matching_genres :
             match = False
+            
         # if match is true, then all user args are met in row with values, like year = 2010 or something like that
         if match: 
             desired_films.append(row)
