@@ -144,8 +144,9 @@ def filter_movies(movies, used_args):
                 arg_actor_names = [name.strip().lower() for name in actor_string.split(',')]
                 csv_actor_names = []
                 for i in range (1,5):
-                    csv_actor_names.append(row['star_' + str(i)])
+                    csv_actor_names.append(row['star_' + str(i)].lower())
                 for name in arg_actor_names:
+                    print(f"comparing {name} against {csv_actor_names}")
                     if name not in csv_actor_names:
                         match = False
                         break
@@ -175,7 +176,7 @@ def main():
     used_args = collect_used_args(args)
     movies = read_csv(args.input)
     desired_films = filter_movies(movies, used_args)
-    # print_movies(desired_films)
+    print_movies(desired_films)
     
 if __name__ == "__main__":
     main()
