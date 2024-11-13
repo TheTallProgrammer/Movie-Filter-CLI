@@ -1,5 +1,6 @@
 import argparse
 import csv
+from tabulate import tabulate
 
 # TODO will need to have args for output and summary log
 
@@ -168,8 +169,18 @@ def filter_movies(movies, used_args):
     return desired_films
 
 def print_movies(desired_films):
-    for movie in desired_films:
-        print(movie)
+    # Sort movies by IMDb rating in descending order
+    desired_films.sort(key=lambda x: float(x['imdb_rating']), reverse=True) # display in descending
+    
+    # Prepare data for printing
+    headers = ["Title", "Year", "Rating", "Genre", "Runtime", "Director"]
+    table = [
+        [movie['series_title'], movie['released_year'], movie['imdb_rating'], movie['genre'], movie['runtime'], movie['director']]
+        for movie in desired_films
+    ]
+    
+    # Print as a table
+    print(tabulate(table, headers=headers, tablefmt="plain"))
         
 def main():
     args = parse_arguments()
