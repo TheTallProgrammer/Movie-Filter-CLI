@@ -22,7 +22,12 @@ def parse_arguments():
         nargs='+', # for director first and last name as arguments
         type=str, 
         help="Filter by director’s name")
-    parser.add_argument("--actor", type=str, help="Filter by actor's name") # actors are the stars in the csv
+    parser.add_argument(
+        "--actor",
+        nargs='+',  # Collect multiple actor names
+        type=str,
+        help="Filter by actor's name(s), separated by commas."
+)
     
     parser.add_argument("--runtime-more-than", type=int, help="Filter for movies with runtime more than a specified duration (in minutes)")
     parser.add_argument("--runtime-less-than", type=int, help="Filter for movies with runtime less than a specified duration (in minutes)")
@@ -134,6 +139,19 @@ def filter_movies(movies, used_args):
                         break  # no need to check further if a match is found
                 continue
 
+            if arg_name == "actor":
+                actor_string = ' '.join(arg_value)
+                arg_actor_names = [name.strip().lower() for name in actor_string.split(',')]
+                csv_actor_names = []
+                for i in range (1,5):
+                    csv_actor_names.append(row['star_' + str(i)])
+                for name in arg_actor_names:
+                    if name not in csv_actor_names:
+                        match = False
+                        break
+                continue
+                    
+
             if row.get(arg_name) != arg_value: # if any of the args the user passed in just doesn't match values, then it voids the entire row ie genre = action, the row doesn't have action in genres, that movie is skipped 
                 match = False
                 break
@@ -157,7 +175,7 @@ def main():
     used_args = collect_used_args(args)
     movies = read_csv(args.input)
     desired_films = filter_movies(movies, used_args)
-    print_movies(desired_films)
+    # print_movies(desired_films)
     
 if __name__ == "__main__":
     main()
