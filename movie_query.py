@@ -73,9 +73,22 @@ def filter_movies(movies, used_args):
                     break
                 continue
             
+            if arg_name == "year_after":
+                if not row['released_year'].isdigit() or int(row['released_year']) <= int(arg_value):
+                    match = False
+                    break
+                continue
+            
+            if arg_name =="year_before":
+                if not row['released_year'].isdigit() or int(row['released_year']) >= int(arg_value):
+                    match = False
+                    break
+                continue
+             
+            
             if arg_name == "genre":  # user specified genre(s)
                 used_genres_as_arg = True
-                genres = row[arg_name].split(',')  # split by comma
+                genres = row[arg_name].split(',')  # split by comma if multiple genres for one movie
                 genres = [genre.strip().lower() for genre in genres]  # clean genres and make them lowercase
                 search_genres = [g.lower() for g in arg_value]  # make user inputs lowercase as well
                 
