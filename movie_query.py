@@ -16,6 +16,8 @@ def parse_arguments():
         type=str,
         help="Filter by genre(s), e.g., --genre Action Drama"
     )
+    parser.add_argument("--votes-min", type=int, help="Filter for minimum number of votes movie recieved")
+    parser.add_argument("--votes-max", type=int, help="Filter for maximum number of votes movie recieved")
     parser.add_argument("--rating-above", type=float, help="Filter for IMDb rating above a specified value")
     parser.add_argument("--rating-below", type=float, help="Filter for IMDb rating below a specified value")
     parser.add_argument(
@@ -25,7 +27,7 @@ def parse_arguments():
         help="Filter by director’s name")
     parser.add_argument(
         "--actor",
-        nargs='+',  # Collect multiple actor names
+        nargs='+',  # collect multiple actor names
         type=str,
         help="Filter by actor's name(s), separated by commas."
 )
@@ -34,6 +36,8 @@ def parse_arguments():
     parser.add_argument("--runtime-less-than", type=int, help="Filter for movies with runtime less than a specified duration (in minutes)")
     parser.add_argument("--gross-min", type=int, help="Filter for movies with gross revenue above a specified value in USD")
     parser.add_argument("--gross-max", type=int, help="Filter for movies with gross revenue below a specified value in USD")
+    parser.add_argument("--output-format", type=str, help="The acceptable formats are json, csv or plain-text")
+    parser.add_argument("--output-file", type=str, help="Enter the name of the file you want to save output to")
 
 
     return parser.parse_args() # being used as a reference to the open file, also holds the args the user passed in for future reference
@@ -127,6 +131,18 @@ def filter_movies(movies, used_args):
                     match = False
                     break
                 continue
+                
+            if arg_name == "votes_min":
+                if int(row['no_of_votes']) < int(arg_value):
+                    match = False
+                    break
+                continue
+            
+            if arg_name == "votes_max":
+                if int(row['no_of_votes']) > int(arg_value):
+                    match = False
+                    break
+                continue
             
             if arg_name == "genre":  # user specified genre(s)
                 used_genres_as_arg = True
@@ -154,7 +170,7 @@ def filter_movies(movies, used_args):
                 continue
                     
 
-            if row.get(arg_name) != arg_value: # if any of the args the user passed in just doesn't match values, then it voids the entire row ie genre = action, the row doesn't have action in genres, that movie is skipped 
+            if row.get(arg_name) != arg_value and (arg_name != "output_file" or arg_name != "output_format"): # if any of the args the user passed in just doesn't match values, then it voids the entire row ie genre = action, the row doesn't have action in genres, that movie is skipped 
                 match = False
                 break
         
@@ -181,13 +197,30 @@ def print_movies(desired_films):
     
     # Print as a table
     print(tabulate(table, headers=headers, tablefmt="plain"))
+    return headers
+
+def save_filtered_data(desired_films, headers, file_name, file_type):
+    if not file_name:
+        file_name = "filtered_movies"
+    if not file_type:
+        file_type = "csv"
+    file_path = f"{file_name}.{file_type}"
+
+    print(f"Filtered movies saved to {file_path}")
+    
         
 def main():
     args = parse_arguments()
     used_args = collect_used_args(args)
     movies = read_csv(args.input)
     desired_films = filter_movies(movies, used_args)
-    print_movies(desired_films)
+    headers = print_movies(desired_films)
+    save_filtered_data(
+        desired_films,
+        headers,
+        file_name=used_args.get('output_file'),
+        file_type=used_args.get('output_format')
+    )
     
 if __name__ == "__main__":
     main()
