@@ -41,6 +41,7 @@ def parse_arguments():
     parser.add_argument("--output-format", type=str, help="The acceptable formats are json, csv or plain-text")
     parser.add_argument("--output-file", type=str, help="Enter the name of the file you want to save output to")
     parser.add_argument("--export-log", type=str, help="Enter the title and filetype of the log, ie 'movie_summary_log.txt', ensure '_' for multiple words")
+    parser.add_argument("--top-10", type=str, help="Generate Top 10 list based on criteria")
 
     validate_arguments(parser.parse_args())
     
@@ -121,7 +122,7 @@ def collect_used_args(args):
     # store only relevant filtering args, excluding output-related arguments
     used_args = {}
     for arg_name, arg_value in vars(args).items():
-        if arg_value is not None and arg_name not in {"output_file", "output_format", "export_log"}:
+        if arg_value is not None and arg_name not in {"top_10", "output_file", "output_format", "export_log"}:
             used_args[arg_name] = arg_value
 
     return used_args
@@ -260,17 +261,22 @@ def filter_movies(movies, used_args):
     return desired_films
 
 def print_movies(desired_films):
-    # Sort movies by IMDb rating in descending order
+    
+    if not desired_films:
+        print("No films found for current filter")
+        sys.exit(1)
+    
+    # sort movies by IMDb rating in descending order
     desired_films.sort(key=lambda x: float(x['imdb_rating']), reverse=True) # display in descending
     
-    # Prepare data for printing
+    # prepare data for printing
     headers = ["Title", "Year", "Rating", "Genre", "Runtime", "Director"]
     table = [
         [movie['series_title'], movie['released_year'], movie['imdb_rating'], movie['genre'], movie['runtime'], movie['director']]
         for movie in desired_films
     ]
     
-    # Print as a table
+    # print as a table
     print(tabulate(table, headers=headers, tablefmt="plain"))
     return headers
 
@@ -326,7 +332,7 @@ def generate_summary_log(desired_films, log_file):
     if not desired_films:
         log_data = "No movies matched the specified filters."
     else:
-        # Calculate statistics for the summary
+        # calculate statistics for the summary
         total_movies = len(desired_films)
         avg_rating = sum(float(movie["imdb_rating"]) for movie in desired_films) / total_movies
         min_rating = min(float(movie["imdb_rating"]) for movie in desired_films)
@@ -342,10 +348,45 @@ def generate_summary_log(desired_films, log_file):
             f"Average Runtime: {avg_runtime:.2f} minutes\n"
         )
     
-    # Write summary log to file
+    # write summary log to file
     with open(log_file, mode="w", encoding="utf-8") as file:
         file.write(log_data)
     print(f"Summary log saved to {log_file}")
+    
+def generate_top_10_list(desired_films, criteria):
+    if not desired_films:
+        print(f"No movies found to generate a top 10 list for '{criteria}'.")
+        return
+    sorted_movies = []
+    # sorting based on the criteria and selecting the top 10
+    if criteria == "highest-rated":
+        sorted_movies = sorted(desired_films, key=lambda x: float(x.get("imdb_rating", 0)), reverse=True)
+    elif criteria == "most-popular":
+        sorted_movies = sorted(desired_films, key=lambda x: int(x.get("no_of_votes", 0)), reverse=True)
+    elif criteria == "highest-grossing":
+        # Handle missing gross values, treating missing values as 0 for sorting
+        sorted_movies = sorted(desired_films, key=lambda x: int(x.get("gross", "0").replace(",", "")), reverse=True)
+    else:
+        print("\nCriteria not accepted")
+        sys.exit(1)
+
+    # slice top 10 after sorting
+    top_10 = sorted_movies[:10]
+
+    # display the top 10 list
+    headers = ["Title", "Year", "Rating", "Votes", "Gross"]
+    table = [
+        [
+            movie.get("series_title", "N/A"),
+            movie.get("released_year", "N/A"),
+            movie.get("imdb_rating", "N/A"),
+            movie.get("no_of_votes", "N/A"),
+            movie.get("gross", "N/A")
+        ]
+        for movie in top_10
+    ]
+    print(f"\nTop 10 {criteria.replace('-', ' ')} Movies:")
+    print(tabulate(table, headers=headers, tablefmt="plain"))
             
 def main():
     args = parse_arguments()
@@ -362,6 +403,9 @@ def main():
     
     if args.export_log:
         generate_summary_log(desired_films, args.export_log)
+    
+    if args.top_10:
+        generate_top_10_list(desired_films, args.top_10)
     
 if __name__ == "__main__":
     main()
