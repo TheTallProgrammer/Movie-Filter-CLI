@@ -37,7 +37,6 @@ movie_filter_project/
 ├── movie_filter.py
 ├── output.py
 ├── summary.py
-└── utils.py
 ```
 
 - **`main.py`**: The main script that ties all modules together.
@@ -46,7 +45,6 @@ movie_filter_project/
 - **`movie_filter.py`**: Contains logic for filtering movies based on criteria.
 - **`output.py`**: Handles printing and saving the filtered movie data.
 - **`summary.py`**: Generates summary logs and Top 10 lists.
-- **`utils.py`**: Contains utility functions shared across modules.
 
 ## Installation
 
