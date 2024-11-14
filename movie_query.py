@@ -2,6 +2,7 @@ import argparse
 import csv
 from tabulate import tabulate
 import json
+import sys
 
 # TODO will need to have args for output and summary log
 
@@ -40,11 +41,83 @@ def parse_arguments():
     parser.add_argument("--output-format", type=str, help="The acceptable formats are json, csv or plain-text")
     parser.add_argument("--output-file", type=str, help="Enter the name of the file you want to save output to")
 
-
+    validate_arguments(parser.parse_args())
+    
     return parser.parse_args() # being used as a reference to the open file, also holds the args the user passed in for future reference
+
+def validate_arguments(args):
+    # validate year ranges
+    current_year = 2024  
+    if args.year_after and (args.year_after < 1900 or args.year_after > current_year):
+        parser_error(f"--year-after must be between 1900 and {current_year}.")
+    
+    if args.year_before and (args.year_before < 1900 or args.year_before > current_year):
+        parser_error(f"--year-before must be between 1900 and {current_year}.")
+    
+    if args.year_after and args.year_before:
+        if args.year_after >= args.year_before:
+            parser_error("--year-after must be less than --year-before.")
+    
+    # validate rating ranges
+    if args.rating_above is not None and not (0.0 <= args.rating_above <= 10.0):
+        parser_error("--rating-above must be between 0.0 and 10.0.")
+    
+    if args.rating_below is not None and not (0.0 <= args.rating_below <= 10.0):
+        parser_error("--rating-below must be between 0.0 and 10.0.")
+    
+    if args.rating_above and args.rating_below:
+        if args.rating_above >= args.rating_below:
+            parser_error("--rating-above must be less than --rating-below.")
+    
+    # validate votes
+    if args.votes_min is not None and args.votes_min < 0:
+        parser_error("--votes-min must be a non-negative integer.")
+    
+    if args.votes_max is not None and args.votes_max < 0:
+        parser_error("--votes-max must be a non-negative integer.")
+    
+    if args.votes_min and args.votes_max:
+        if args.votes_min > args.votes_max:
+            parser_error("--votes-min must be less than or equal to --votes-max.")
+    
+    # validate runtime
+    if args.runtime_more_than is not None and args.runtime_more_than <= 0:
+        parser_error("--runtime-more-than must be a positive integer.")
+    
+    if args.runtime_less_than is not None and args.runtime_less_than <= 0:
+        parser_error("--runtime-less-than must be a positive integer.")
+    
+    if args.runtime_more_than and args.runtime_less_than:
+        if args.runtime_more_than >= args.runtime_less_than:
+            parser_error("--runtime-more-than must be less than --runtime-less-than.")
+    
+    # validate gross
+    if args.gross_min is not None and args.gross_min < 0:
+        parser_error("--gross-min must be a non-negative integer.")
+    
+    if args.gross_max is not None and args.gross_max < 0:
+        parser_error("--gross-max must be a non-negative integer.")
+    
+    if args.gross_min and args.gross_max:
+        if args.gross_min > args.gross_max:
+            parser_error("--gross-min must be less than or equal to --gross-max.")
+    
+    # validate director name
+    if args.director and len(args.director) < 2:
+        parser_error("--director requires both first and last name, e.g., --director First Last.")
+    
+    # validate actor names (assuming at least one actor is provided)
+    if args.actor:
+        for actor in args.actor:
+            if not actor.strip():
+                parser_error("Actor names cannot be empty.")
+                
+def parser_error(message):
+    print(f"Argument Error: {message}", file=sys.stderr)
+    sys.exit(1)
     
 def collect_used_args(args):
-    # Store only relevant filtering args, excluding output-related arguments
+    # store only relevant filtering args, excluding output-related arguments
     used_args = {}
     for arg_name, arg_value in vars(args).items():
         if arg_value is not None and arg_name not in {"output_file", "output_format"}:
@@ -165,7 +238,6 @@ def filter_movies(movies, used_args):
                 for i in range (1,5):
                     csv_actor_names.append(row['star_' + str(i)].lower())
                 for name in arg_actor_names:
-                    print(f"comparing {name} against {csv_actor_names}")
                     if name not in csv_actor_names:
                         match = False
                         break
