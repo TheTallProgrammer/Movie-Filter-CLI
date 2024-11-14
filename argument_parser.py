@@ -43,6 +43,12 @@ def parse_arguments():
     return parser.parse_args() # being used as a reference to the open file, also holds the args the user passed in for future reference
 
 def validate_arguments(args):
+    
+    # input validation for file to parse
+    if not args.input:
+        print("No input file detected.")
+        sys.exit(1)
+    
     # validate year ranges
     current_year = 2024  
     if args.year_after and (args.year_after < 1900 or args.year_after > current_year):

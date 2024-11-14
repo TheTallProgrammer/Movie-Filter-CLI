@@ -100,7 +100,7 @@ def filter_movies(movies, used_args):
                 actor_string = ' '.join(arg_value)
                 arg_actor_names = [name.strip().lower() for name in actor_string.split(',')]
                 csv_actor_names = []
-                for i in range (1,5):
+                for i in range (1,5): # only 4 "stars" (actors)
                     csv_actor_names.append(row['star_' + str(i)].lower())
                 for name in arg_actor_names:
                     if name not in csv_actor_names:
