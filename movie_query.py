@@ -40,6 +40,7 @@ def parse_arguments():
     parser.add_argument("--gross-max", type=int, help="Filter for movies with gross revenue below a specified value in USD")
     parser.add_argument("--output-format", type=str, help="The acceptable formats are json, csv or plain-text")
     parser.add_argument("--output-file", type=str, help="Enter the name of the file you want to save output to")
+    parser.add_argument("--export-log", type=str, help="Enter the title and filetype of the log, ie 'movie_summary_log.txt', ensure '_' for multiple words")
 
     validate_arguments(parser.parse_args())
     
@@ -104,7 +105,7 @@ def validate_arguments(args):
     
     # validate director name
     if args.director and len(args.director) < 2:
-        parser_error("--director requires both first and last name, e.g., --director First Last.")
+        parser_error("--director requires both first and last name, e.g., '--director First Last', seperate other names with comma, no "" allowed.")
     
     # validate actor names (assuming at least one actor is provided)
     if args.actor:
@@ -120,7 +121,7 @@ def collect_used_args(args):
     # store only relevant filtering args, excluding output-related arguments
     used_args = {}
     for arg_name, arg_value in vars(args).items():
-        if arg_value is not None and arg_name not in {"output_file", "output_format"}:
+        if arg_value is not None and arg_name not in {"output_file", "output_format", "export_log"}:
             used_args[arg_name] = arg_value
 
     return used_args
@@ -321,6 +322,31 @@ def save_as_csv(file_path, headers, data):
             writer.writeheader()
             writer.writerows(data)
             
+def generate_summary_log(desired_films, log_file):
+    if not desired_films:
+        log_data = "No movies matched the specified filters."
+    else:
+        # Calculate statistics for the summary
+        total_movies = len(desired_films)
+        avg_rating = sum(float(movie["imdb_rating"]) for movie in desired_films) / total_movies
+        min_rating = min(float(movie["imdb_rating"]) for movie in desired_films)
+        max_rating = max(float(movie["imdb_rating"]) for movie in desired_films)
+        avg_runtime = sum(int(movie["runtime"].replace("min", "").strip()) for movie in desired_films) / total_movies
+        
+        log_data = (
+            f"Summary of Filtered Movies:\n"
+            f"Total Movies: {total_movies}\n"
+            f"Average IMDb Rating: {avg_rating:.2f}\n"
+            f"Minimum IMDb Rating: {min_rating}\n"
+            f"Maximum IMDb Rating: {max_rating}\n"
+            f"Average Runtime: {avg_runtime:.2f} minutes\n"
+        )
+    
+    # Write summary log to file
+    with open(log_file, mode="w", encoding="utf-8") as file:
+        file.write(log_data)
+    print(f"Summary log saved to {log_file}")
+            
 def main():
     args = parse_arguments()
     used_args = collect_used_args(args)
@@ -333,6 +359,9 @@ def main():
         file_name=args.output_file,
         file_type=args.output_format
     )
+    
+    if args.export_log:
+        generate_summary_log(desired_films, args.export_log)
     
 if __name__ == "__main__":
     main()
