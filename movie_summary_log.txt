@@ -1,6 +1,0 @@
-Summary of Filtered Movies:
-Total Movies: 10
-Average IMDb Rating: 8.13
-Minimum IMDb Rating: 7.6
-Maximum IMDb Rating: 8.9
-Average Runtime: 140.00 minutes
