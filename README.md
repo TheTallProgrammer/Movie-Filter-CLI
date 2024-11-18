@@ -51,7 +51,7 @@ movie_filter_project/
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/yourusername/movie_filter_project.git
+   git clone https://github.com/thetallprogrammer/movie_filter_project.git
    ```
 
 2. **Navigate to the project directory**:
